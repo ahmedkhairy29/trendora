@@ -1,0 +1,38 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
+use App\Http\Controllers\Admin\ProductController as AdminProductController;
+use App\Models\Category;
+use App\Models\Product;
+
+
+Route::get('/', function () {
+    return view('welcome');
+});
+
+
+Route::get('/register', [AuthController::class, 'showRegister'])->name('register.show');
+Route::post('/register', [AuthController::class, 'register'])->name('register');
+
+
+Route::get('/login', [AuthController::class, 'showLogin'])->name('login.show');
+Route::post('/login', [AuthController::class, 'login'])->name('login');
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+
+Route::middleware(['auth','admin'])->prefix('admin')->name('admin.')->group(function(){
+    Route::get('/dashboard', function () {
+    $categoriesCount = Category::count();
+    $productsCount = Product::count();
+
+    
+    $categoryProducts = Category::withCount('products')->get();
+
+    return view('admin.dashboard', compact('categoriesCount', 'productsCount', 'categoryProducts'));
+})->name('dashboard');
+
+    Route::resource('categories', AdminCategoryController::class);
+    Route::resource('products', AdminProductController::class);
+});
