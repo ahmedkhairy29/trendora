@@ -5,26 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Admin Panel')</title>
 
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <!-- Bootstrap 5 & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="{{ asset('css/admin.css') }}" rel="stylesheet">
 </head>
-<body class="bg-light">
+<body class="m-0 p-0">
 
-    {{-- Navbar --}}
-    @include('auth.partials.navbar')
+    <div class="d-flex">
+        {{-- Sidebar --}}
+        @include('auth.partials.sidebar') {{-- ✅ تم تعديل المسار هنا --}}
 
-    <div class="container-fluid">
-        <div class="row">
-            {{-- Sidebar --}}
-            <div class="col-md-3 col-lg-2 bg-dark min-vh-100 p-0">
-                @include('auth.partials.sidebar')
-            </div>
-
-            {{-- Main Content --}}
-            <div class="col-md-9 col-lg-10 p-4">
-                @yield('content')
-            </div>
+        {{-- Main Content --}}
+        <div class="flex-grow-1 p-4">
+            @yield('content')
         </div>
     </div>
 
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
