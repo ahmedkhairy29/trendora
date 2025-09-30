@@ -4,63 +4,110 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 
 class AuthController extends Controller
 {
-    public function showRegister() {
-        return view('auth.register');
-    }
-
-    public function register(Request $request) {
+    
+    public function register(Request $request)
+    {
         $request->validate([
-            'name' => 'required|string|max:100',
-            'email' => 'required|email|unique:users',
-            'password' => 'required|min:6|confirmed'
+            'name' => 'required|string',
+            'email' => 'required|string|email|unique:users',
+            'password' => 'required|string|confirmed'
         ]);
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'password' => Hash::make($request->password)
+            'password' => bcrypt($request->password),
         ]);
 
-        Auth::login($user);
-        return redirect('/')->with('success', 'Welcome, you are registered!');
-    }
+        $token = $user->createToken('auth_token')->plainTextToken;
 
-    public function showLogin() {
-        return view('auth.login');
+        return response()->json([
+            'user' => $user,
+            'access_token' => $token,
+            'token_type' => 'Bearer',
+        ]);
     }
 
     public function login(Request $request)
-    {
-        $credentials = $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
-        ]);
+{
+    $request->validate([
+        'email' => 'required|email',
+        'password' => 'required',
+    ]);
 
-        if (Auth::attempt($credentials)) {
-            $request->session()->regenerate();
-
-            // ✅ وجه المستخدم حسب صلاحياته
-            if (Auth::user()->is_admin) {
-                return redirect('/admin/dashboard');
-            }
-
-            return redirect('/'); // مستخدم عادي
-        }
-
-        return back()->withErrors([
-            'email' => 'Invalid email or password',
-        ]);
+    if (!Auth::guard('web')->attempt($request->only('email', 'password'))) {
+        return response()->json(['message' => 'Invalid login details'], 401);
     }
 
-    public function logout(Request $request) {
+    $user = User::where('email', $request->email)->firstOrFail();
+    $token = $user->createToken('auth_token')->plainTextToken;
+
+    return response()->json([
+        'user' => $user,
+        'access_token' => $token,
+        'token_type' => 'Bearer',
+    ]);
+}
+
+    public function me(Request $request)
+    {
+        return response()->json($request->user());
+    }
+
+    public function logout(Request $request)
+    {
+        $request->user()->tokens()->delete();
+        return response()->json(['message' => 'Logged out successfully']);
+    }
+
+    
+    public function showLogin()
+    {
+        return view('auth.login'); 
+    }
+
+    public function showRegister()
+    {
+        return view('auth.register'); 
+    }
+
+    public function processLogin(Request $request)
+    {
+        $credentials = $request->only('email', 'password');
+
+        if (Auth::attempt($credentials)) {
+            return redirect()->intended('/dashboard'); 
+        }
+
+        return back()->withErrors(['email' => 'Invalid credentials']);
+    }
+
+    public function processRegister(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string',
+            'email' => 'required|string|email|unique:users',
+            'password' => 'required|string|confirmed'
+        ]);
+
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => bcrypt($request->password),
+        ]);
+
+        Auth::login($user);
+
+        return redirect('/dashboard');
+    }
+
+    public function logoutWeb(Request $request)
+    {
         Auth::logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
         return redirect('/login');
     }
 }

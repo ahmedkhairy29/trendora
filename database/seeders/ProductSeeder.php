@@ -12,14 +12,14 @@ class ProductSeeder extends Seeder
     {
         Product::create([
             'name' => 'Product 1',
-            'slug' => Str::slug('Product 1'), // 👈 أضفنا slug
+            'slug' => Str::slug('Product 1'), 
             'description' => 'This is the first product',
             'price' => 100,
         ]);
 
         Product::create([
             'name' => 'Product 2',
-            'slug' => Str::slug('Product 2'), // 👈 أضفنا slug
+            'slug' => Str::slug('Product 2'), 
             'description' => 'This is the second product',
             'price' => 150,
         ]);
