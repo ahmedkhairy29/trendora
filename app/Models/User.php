@@ -21,6 +21,17 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
+    
+    public function wishlist()
+{
+    return $this->hasMany(Wishlist::class);
+}
+
+public function orders()
+{
+    return $this->hasMany(Order::class);
+}
+
 }
 
 
